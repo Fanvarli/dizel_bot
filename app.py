@@ -1,35 +1,24 @@
-import os
-import json
 from flask import Flask, request
-from config import GROUP_TOKEN, CONFIRMATION_TOKEN, BOT_NAME, ADMIN_ID
-import vk_api
-from vk_api.utils import get_random_id
+import os
 
 app = Flask(__name__)
 
-vk_session = vk_api.VkApi(token=GROUP_TOKEN)
-vk = vk_session.get_api()
+CONFIRMATION_TOKEN = os.environ.get("CONFIRMATION_TOKEN")
+GROUP_TOKEN = os.environ.get("GROUP_TOKEN")
+BOT_NAME = os.environ.get("BOT_NAME", "dizel")
 
-@app.route('/', methods=['POST'])
-def callback():
-    data = request.get_json(force=True)
+@app.route("/", methods=["POST"])
+def vk_callback():
+    data = request.get_json()
     if data["type"] == "confirmation":
+        # Возвращаем строку подтверждения без кавычек и оберток
         return CONFIRMATION_TOKEN
-
-    if data["type"] == "message_new":
-        message = data["object"]["message"]
-        text = message.get("text", "")
-        peer_id = message["peer_id"]
-
-        if BOT_NAME in text.lower() or f"@{BOT_NAME}" in text.lower():
-            vk.messages.send(
-                peer_id=peer_id,
-                message="Я на месте! Слушаю внимательно.",
-                random_id=get_random_id()
-            )
-
+    elif data["type"] == "message_new":
+        # Здесь можно обрабатывать новые сообщения
+        return "ok"
     return "ok"
 
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+@app.route("/", methods=["GET"])
+def check():
+    return "VK bot is running"
+        
