@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request, make_response
 import os
 
 app = Flask(__name__)
@@ -9,16 +9,16 @@ BOT_NAME = os.environ.get("BOT_NAME", "dizel")
 
 @app.route("/", methods=["POST"])
 def vk_callback():
-    data = request.get_json()
-    if data["type"] == "confirmation":
-        # Возвращаем строку подтверждения без кавычек и оберток
-        return CONFIRMATION_TOKEN
-    elif data["type"] == "message_new":
-        # Здесь можно обрабатывать новые сообщения
-        return "ok"
-    return "ok"
+    data = request.get_json(force=True)
+    if data.get("type") == "confirmation":
+        # Возвращаем токен с кодом 200
+        return make_response(CONFIRMATION_TOKEN, 200)
+    elif data.get("type") == "message_new":
+        # Обработка сообщений
+        return make_response("ok", 200)
+    return make_response("ok", 200)
 
 @app.route("/", methods=["GET"])
 def check():
-    return "VK bot is running"
-        
+    return "VK bot is running", 200
+    
